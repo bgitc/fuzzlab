@@ -1,82 +1,35 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#define MAX_STUDENTS 10
-#define NAME_LENGTH 20
-#define FILE_NAME "students.dat"
+#define MAX_ENTRY_SIZE 16
+#define MAX_LINE 256
 
-typedef struct {
-    char name[NAME_LENGTH];
-    int score;
-} Student;
-
-Student students[MAX_STUDENTS];
-int studentCount = 0;
-
-void addStudent(char* name, int score) {
-    if (studentCount < MAX_STUDENTS) {
-        strcpy(students[studentCount].name, name);
-        students[studentCount].score = score;
-        studentCount++;
-    } else {
-        printf("더 이상 학생을 추가할 수 없습니다.\n");
-    }
+void add_expense(char *line) {
+    char entry[MAX_ENTRY_SIZE];
+    
+    strcpy(entry, line);
+    
+    printf("Added expense: %s\n", entry);
 }
 
-void saveStudents() {
-    FILE* file = fopen(FILE_NAME, "wb");
-    if (file == NULL) {
-        printf("파일을 저장할 수 없습니다.\n");
-        return;
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s <ledger_file>\n", argv[0]);
+        return 1;
     }
-    fwrite(&studentCount, sizeof(int), 1, file);
-    fwrite(students, sizeof(Student), studentCount, file);
-    fclose(file);
-    printf("학생 정보가 저장되었습니다.\n");
-}
-
-void loadStudents() {
-    FILE* file = fopen(FILE_NAME, "rb");
-    if (file == NULL) {
-        printf("파일을 불러올 수 없습니다.\n");
-        return;
+    
+    FILE *fp = fopen(argv[1], "r");
+    if (!fp) {
+        printf("Error: Cannot open %s\n", argv[1]);
+        return 1;
     }
-    fread(&studentCount, sizeof(int), 1, file);
-    fread(students, sizeof(Student), studentCount, file);
-    fclose(file);
-    printf("학생 정보가 불러와졌습니다.\n");
-}
-
-int main() {
-    char choice;
-    char nameBuffer[256];
-    int score;
-
-    printf("학생 성적 관리 프로그램입니다.\n");
-
-    while (1) {
-        printf("\n학생 정보를 추가하시겠습니까? (y/n): ");
-        scanf(" %c", &choice);
-        if (choice == 'n' || choice == 'N') {
-            break;
-        }
-
-        printf("학생 이름: ");
-        scanf("%s", nameBuffer);
-        printf("학생 성적: ");
-        scanf("%d", &score);
-
-        addStudent(nameBuffer, score);
+    
+    char line[MAX_LINE] = {0};
+    if (fgets(line, MAX_LINE, fp)) {
+        line[strcspn(line, "\n")] = 0;
+        add_expense(line);
     }
-
-    saveStudents();
-    loadStudents();
-
-    printf("\n등록된 학생 목록:\n");
-    for (int i = 0; i < studentCount; i++) {
-        printf("이름: %s, 성적: %d\n", students[i].name, students[i].score);
-    }
-
+    
+    fclose(fp);
     return 0;
 }
